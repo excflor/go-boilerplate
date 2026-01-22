@@ -5,6 +5,8 @@ go 1.25.6
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/labstack/echo/v5 v5.0.0
+	github.com/samber/do v1.6.0
+	github.com/shopspring/decimal v1.4.0
 )
 
 require (

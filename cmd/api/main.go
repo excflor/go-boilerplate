@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-boilerplate/internal/config"
+	"go-boilerplate/internal/crypto"
 	"go-boilerplate/internal/router"
 	"log"
 	"net/http"
@@ -17,6 +18,10 @@ func main() {
 	}
 
 	e := router.NewRouter(cfg)
+
+	cryptoGroup := e.Group("/crypto-api")
+	crypto.NewInjector()
+	crypto.NewHTTPHandlers(cryptoGroup)
 
 	e.GET("/", heartbeat)
 

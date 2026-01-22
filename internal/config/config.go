@@ -21,7 +21,7 @@ type Config struct {
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig(".env", &cfg)
+	err := cleanenv.ReadConfig(".env", cfg)
 	if err != nil {
 		return nil, err
 	}
