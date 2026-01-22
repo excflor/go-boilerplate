@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -20,12 +18,12 @@ type Config struct {
 	MaxRequestPerSecond float64 `env:"MAX_REQUEST_PER_SECOND" env-default:"20"`
 }
 
-func NewConfig() *Config {
-	var cfg Config
+func NewConfig() (*Config, error) {
+	cfg := &Config{}
 
 	err := cleanenv.ReadConfig(".env", &cfg)
 	if err != nil {
-		log.Fatalf("config error: %v", err)
+		return nil, err
 	}
-	return &cfg
+	return cfg, nil
 }

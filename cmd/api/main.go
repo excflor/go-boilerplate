@@ -2,16 +2,21 @@ package main
 
 import (
 	"fmt"
-	"go-boilerplate/app/web/router"
-	"go-boilerplate/config"
+	"go-boilerplate/internal/config"
+	"go-boilerplate/internal/router"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
 )
 
 func main() {
-	cfg := config.NewConfig()
-	e := router.SetupEcho()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
+	e := router.NewRouter(cfg)
 
 	e.GET("/", heartbeat)
 
