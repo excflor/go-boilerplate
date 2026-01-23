@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"go-boilerplate/internal/config"
 	"go-boilerplate/internal/crypto"
+	"go-boilerplate/internal/databse"
+	"go-boilerplate/internal/infra/auth"
 	"go-boilerplate/internal/router"
 	"log"
 	"net/http"
@@ -17,11 +19,18 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
+	db, err := databse.NewPostgres(cfg)
+	if err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+
+	bearerMiddleware := auth.BearerAuth()
+
 	e := router.NewRouter(cfg)
 
 	cryptoGroup := e.Group("/crypto-api")
-	crypto.NewInjector()
-	crypto.NewHTTPHandlers(cryptoGroup)
+	crypto.NewInjector(db)
+	crypto.NewHTTPHandlers(cryptoGroup, bearerMiddleware)
 
 	e.GET("/", heartbeat)
 
