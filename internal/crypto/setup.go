@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"go-boilerplate/internal/crypto/portfolio"
+	"go-boilerplate/internal/infra/auth"
 
 	"github.com/labstack/echo/v5"
 	"github.com/samber/do"
@@ -28,8 +29,10 @@ func NewInjector(db *gorm.DB) *do.Injector {
 func NewHTTPHandlers(
 	g *echo.Group,
 	injector *do.Injector,
-	bearerMiddleware echo.MiddlewareFunc,
+	jwtSvc auth.JWTService,
 ) {
+	bearerMiddleware := auth.BearerAuth(jwtSvc)
+
 	portfolio.NewHandler(
 		g,
 		do.MustInvoke[portfolio.Usecase](injector),

@@ -20,6 +20,9 @@ type Config struct {
 	}
 
 	MaxRequestPerSecond float64 `env:"MAX_REQUEST_PER_SECOND" env-default:"20"`
+
+	JWTSecret      string `env:"JWT_SECRET" env-default:"very-secret-key"`
+	JWTExpiryHours int    `env:"JWT_EXPIRY_HOURS" env-default:"24"`
 }
 
 func NewConfig() (*Config, error) {

@@ -9,12 +9,15 @@ import (
 	"go-boilerplate/internal/infra/auth"
 	"go-boilerplate/internal/infra/health"
 	"go-boilerplate/internal/router"
+	"go-boilerplate/pkg/response"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/labstack/echo/v5"
 )
 
 func main() {
@@ -34,7 +37,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	bearerMiddleware := auth.BearerAuth()
+	jwtSvc := auth.NewJWTService(cfg.JWTSecret, cfg.JWTExpiryHours)
 
 	e := router.NewRouter(cfg)
 
@@ -43,9 +46,20 @@ func main() {
 	e.GET("/health/live", healthHandler.Liveness)
 	e.GET("/health/ready", healthHandler.Readiness)
 
+	// Sample login endpoint for demonstration
+	e.POST("/login", func(c *echo.Context) error {
+		// In a real app, you would validate credentials against the DB here
+		userID := "7ea078fa-aac0-4364-8f5f-ba69b136b8f7"
+		token, err := jwtSvc.GenerateToken(userID)
+		if err != nil {
+			return response.InternalServerError(c, "failed to generate token")
+		}
+		return response.Success(c, "Login successful", map[string]string{"token": token})
+	})
+
 	cryptoGroup := e.Group("/crypto-api")
 	injector := crypto.NewInjector(db)
-	crypto.NewHTTPHandlers(cryptoGroup, injector, bearerMiddleware)
+	crypto.NewHTTPHandlers(cryptoGroup, injector, jwtSvc)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.AppPort),
