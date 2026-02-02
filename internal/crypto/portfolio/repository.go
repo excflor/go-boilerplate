@@ -35,9 +35,9 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*Portfolio, err
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("portfolio not found")
+			return nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("failed to get portfolio: %w", err)
+		return nil, fmt.Errorf("failed to get portfolio %s: %w", id, err)
 	}
 
 	return &portfolio, nil
