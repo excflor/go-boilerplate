@@ -47,7 +47,7 @@ func (u *usecase) GetPortfolio(ctx context.Context, userID, portfolioID uuid.UUI
 	}
 
 	if portfolio.UserID != userID {
-		return nil, fmt.Errorf("unauthorized access to portfolio")
+		return nil, ErrUnauthorized
 	}
 
 	return portfolio, nil

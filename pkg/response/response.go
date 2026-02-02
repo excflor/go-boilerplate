@@ -41,6 +41,14 @@ func Unauthorized(c *echo.Context, message string) error {
 	})
 }
 
+// Forbidden sends a forbidden error response
+func Forbidden(c *echo.Context, message string) error {
+	return c.JSON(http.StatusForbidden, dto.BaseResponse{
+		Success: false,
+		Error:   message,
+	})
+}
+
 // NotFound sends a not found error response
 func NotFound(c *echo.Context, message string) error {
 	return c.JSON(http.StatusNotFound, dto.BaseResponse{

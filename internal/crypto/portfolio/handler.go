@@ -1,6 +1,7 @@
 package portfolio
 
 import (
+	"errors"
 	"go-boilerplate/internal/dto"
 	"go-boilerplate/pkg/response"
 
@@ -95,11 +96,15 @@ func (h *Handler) GetPortfolio(c *echo.Context) error {
 
 	portfolio, err := h.usecase.GetPortfolio(c.Request().Context(), userID, portfolioID)
 	if err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to get portfolio", "error", err, "portfolio_id", portfolioID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	responseData := ToPortfolioResponse(portfolio)
@@ -130,11 +135,15 @@ func (h *Handler) UpdatePortfolio(c *echo.Context) error {
 
 	portfolio, err := h.usecase.UpdatePortfolio(c.Request().Context(), userID, portfolioID, req)
 	if err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to update portfolio", "error", err, "portfolio_id", portfolioID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	responseData := ToPortfolioResponse(portfolio)
@@ -155,11 +164,15 @@ func (h *Handler) DeletePortfolio(c *echo.Context) error {
 	}
 
 	if err := h.usecase.DeletePortfolio(c.Request().Context(), userID, portfolioID); err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to delete portfolio", "error", err, "portfolio_id", portfolioID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	return response.Success(c, "success delete portfolio", nil)
@@ -179,11 +192,15 @@ func (h *Handler) GetPortfolioSummary(c *echo.Context) error {
 
 	summary, err := h.usecase.GetPortfolioSummary(c.Request().Context(), userID, portfolioID)
 	if err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to get portfolio summary", "error", err, "portfolio_id", portfolioID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	return response.Success(c, "success get portfolio summary", summary)
@@ -212,11 +229,15 @@ func (h *Handler) AddHolding(c *echo.Context) error {
 
 	holding, err := h.usecase.AddHolding(c.Request().Context(), userID, portfolioID, req)
 	if err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to add holding", "error", err, "portfolio_id", portfolioID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	return response.Success(c, "success add holding", holding)
@@ -240,11 +261,15 @@ func (h *Handler) RemoveHolding(c *echo.Context) error {
 	}
 
 	if err := h.usecase.RemoveHolding(c.Request().Context(), userID, portfolioID, holdingID); err != nil {
-		if err.Error() == "portfolio not found" || err.Error() == "unauthorized access to portfolio" {
-			return response.NotFound(c, err.Error())
+		switch {
+		case errors.Is(err, ErrNotFound):
+			return response.NotFound(c, "Portfolio not found")
+		case errors.Is(err, ErrUnauthorized):
+			return response.Forbidden(c, "Access denied")
+		default:
+			c.Logger().Error("failed to remove holding", "error", err, "portfolio_id", portfolioID, "holding_id", holdingID)
+			return response.InternalServerError(c, "An error occurred")
 		}
-
-		return response.InternalServerError(c, err.Error())
 	}
 
 	return response.Success(c, "success remove holding", nil)
