@@ -29,8 +29,8 @@ func main() {
 	e := router.NewRouter(cfg)
 
 	cryptoGroup := e.Group("/crypto-api")
-	crypto.NewInjector(db)
-	crypto.NewHTTPHandlers(cryptoGroup, bearerMiddleware)
+	injector := crypto.NewInjector(db)
+	crypto.NewHTTPHandlers(cryptoGroup, injector, bearerMiddleware)
 
 	e.GET("/", heartbeat)
 
