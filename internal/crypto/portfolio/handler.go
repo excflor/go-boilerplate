@@ -49,7 +49,12 @@ func (h *Handler) CreatePortfolio(c *echo.Context) error {
 		return response.BadRequest(c, err.Error())
 	}
 
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -66,7 +71,12 @@ func (h *Handler) CreatePortfolio(c *echo.Context) error {
 }
 
 func (h *Handler) GetPortfolios(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -83,7 +93,12 @@ func (h *Handler) GetPortfolios(c *echo.Context) error {
 }
 
 func (h *Handler) GetPortfolio(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -113,7 +128,12 @@ func (h *Handler) GetPortfolio(c *echo.Context) error {
 }
 
 func (h *Handler) UpdatePortfolio(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -152,7 +172,12 @@ func (h *Handler) UpdatePortfolio(c *echo.Context) error {
 }
 
 func (h *Handler) DeletePortfolio(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -179,7 +204,12 @@ func (h *Handler) DeletePortfolio(c *echo.Context) error {
 }
 
 func (h *Handler) GetPortfolioSummary(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -207,7 +237,12 @@ func (h *Handler) GetPortfolioSummary(c *echo.Context) error {
 }
 
 func (h *Handler) AddHolding(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
@@ -244,7 +279,12 @@ func (h *Handler) AddHolding(c *echo.Context) error {
 }
 
 func (h *Handler) RemoveHolding(c *echo.Context) error {
-	userIDStr := c.Get("user_id").(string)
+	userIDValue := c.Get("user_id")
+	userIDStr, ok := userIDValue.(string)
+	if !ok {
+		return response.InternalServerError(c, "invalid user context")
+	}
+
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.BadRequest(c, "invalid user id format")
