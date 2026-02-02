@@ -42,8 +42,8 @@ func TestJWTService_ExpiredToken(t *testing.T) {
 	// Arrange
 	secret := "secret"
 	svc := &jwtService{
-		secret: []byte(secret),
-		expiry: -1 * time.Hour, // Expired
+		secret:       []byte(secret),
+		accessExpiry: -1 * time.Hour, // Expired
 	}
 
 	token, _ := svc.GenerateToken("user-123")
