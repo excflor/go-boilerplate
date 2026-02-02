@@ -13,6 +13,10 @@ type Config struct {
 		User     string `env:"DB_USER" env-required:"true"`
 		Password string `env:"DB_PASSWORD" env-required:"true"`
 		Name     string `env:"DB_NAME" env-required:"true"`
+
+		MaxOpenConns    int `env:"DB_MAX_OPEN_CONNS" env-default:"25"`
+		MaxIdleConns    int `env:"DB_MAX_IDLE_CONNS" env-default:"10"`
+		ConnMaxLifetime int `env:"DB_CONN_MAX_LIFETIME" env-default:"15"` // in minutes
 	}
 
 	MaxRequestPerSecond float64 `env:"MAX_REQUEST_PER_SECOND" env-default:"20"`
