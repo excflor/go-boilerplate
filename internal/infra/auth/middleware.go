@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-func BearerAuth() echo.MiddlewareFunc {
+func BearerAuth(jwtSvc JWTService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -22,13 +22,12 @@ func BearerAuth() echo.MiddlewareFunc {
 
 			token := parts[1]
 
-			// hardcoded for example, should have token validator
-			if token != "secret-token-123" {
+			claims, err := jwtSvc.ValidateToken(token)
+			if err != nil {
 				return response.Unauthorized(c, "invalid or expired token")
 			}
 
-			// hardcoded for example, user id should be from validated token
-			c.Set("user_id", "7ea078fa-aac0-4364-8f5f-ba69b136b8f7")
+			c.Set("user_id", claims.UserID)
 
 			return next(c)
 		}
