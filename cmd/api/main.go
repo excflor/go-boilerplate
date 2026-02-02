@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go-boilerplate/internal/config"
 	"go-boilerplate/internal/crypto"
-	"go-boilerplate/internal/databse"
+	"go-boilerplate/internal/database"
 	"go-boilerplate/internal/infra/auth"
 	"go-boilerplate/internal/router"
 	"log"
@@ -19,7 +19,7 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	db, err := databse.NewPostgres(cfg)
+	db, err := database.NewPostgres(cfg)
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
