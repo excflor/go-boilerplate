@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var (
@@ -19,25 +20,40 @@ type Claims struct {
 type JWTService interface {
 	GenerateToken(userID string) (string, error)
 	ValidateToken(tokenString string) (*Claims, error)
+	GeneratePair(userID string) (string, string, error)
 }
 
 type jwtService struct {
-	secret []byte
-	expiry time.Duration
+	secret        []byte
+	accessExpiry  time.Duration
+	refreshExpiry time.Duration
 }
 
-func NewJWTService(secret string, expiryHours int) JWTService {
+func NewJWTService(secret string, accessExpiryHours int) JWTService {
 	return &jwtService{
-		secret: []byte(secret),
-		expiry: time.Duration(expiryHours) * time.Hour,
+		secret:        []byte(secret),
+		accessExpiry:  time.Duration(accessExpiryHours) * time.Hour,
+		refreshExpiry: 7 * 24 * time.Hour, // Default 7 days
 	}
+}
+
+func (s *jwtService) GeneratePair(userID string) (string, string, error) {
+	accessToken, err := s.GenerateToken(userID)
+	if err != nil {
+		return "", "", err
+	}
+
+	// For simple implementation, refresh token is a random string/UUID
+	refreshToken := uuid.New().String()
+
+	return accessToken, refreshToken, nil
 }
 
 func (s *jwtService) GenerateToken(userID string) (string, error) {
 	claims := &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.expiry)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.accessExpiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

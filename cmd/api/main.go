@@ -3,21 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"go-boilerplate/internal/auth"
 	"go-boilerplate/internal/config"
 	"go-boilerplate/internal/crypto"
+	"go-boilerplate/internal/crypto/portfolio"
 	"go-boilerplate/internal/database"
-	"go-boilerplate/internal/infra/auth"
+	infraAuth "go-boilerplate/internal/infra/auth"
 	"go-boilerplate/internal/infra/health"
 	"go-boilerplate/internal/router"
-	"go-boilerplate/pkg/response"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/labstack/echo/v5"
 )
 
 func main() {
@@ -37,7 +36,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	jwtSvc := auth.NewJWTService(cfg.JWTSecret, cfg.JWTExpiryHours)
+	// Auto-migrate domain entities
+	if err := db.AutoMigrate(&auth.RefreshToken{}, &portfolio.Portfolio{}, &portfolio.Holding{}); err != nil {
+		slog.Error("failed to migrate database", "error", err)
+		os.Exit(1)
+	}
+
+	jwtSvc := infraAuth.NewJWTService(cfg.JWTSecret, cfg.JWTExpiryHours)
 
 	e := router.NewRouter(cfg)
 
@@ -46,26 +51,22 @@ func main() {
 	e.GET("/health/live", healthHandler.Liveness)
 	e.GET("/health/ready", healthHandler.Readiness)
 
-	// Sample login endpoint for demonstration
-	e.POST("/login", func(c *echo.Context) error {
-		// In a real app, you would validate credentials against the DB here
-		userID := "7ea078fa-aac0-4364-8f5f-ba69b136b8f7"
-		token, err := jwtSvc.GenerateToken(userID)
-		if err != nil {
-			return response.InternalServerError(c, "failed to generate token")
-		}
-		return response.Success(c, "Login successful", map[string]string{"token": token})
-	})
+	// Auth domain setup
+	authInjector := auth.NewInjector(db, jwtSvc)
+	auth.RegisterHandlers(e, authInjector)
 
+	// Crypto domain setup
 	cryptoGroup := e.Group("/crypto-api")
-	injector := crypto.NewInjector(db)
-	crypto.NewHTTPHandlers(cryptoGroup, injector, jwtSvc)
+	cryptoInjector := crypto.NewInjector(db)
+	crypto.NewHTTPHandlers(cryptoGroup, cryptoInjector, jwtSvc)
 
+	// Configure http.Server explicitly for better control and graceful shutdown support in Echo v5
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.AppPort),
 		Handler: e,
 	}
 
+	// Start server in a goroutine
 	go func() {
 		slog.Info("starting server", "port", cfg.AppPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -74,19 +75,23 @@ func main() {
 		}
 	}()
 
+	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
 	slog.Info("shutting down server...")
 
+	// Create a context with timeout for the shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Shutdown server gracefully
 	if err := server.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown server gracefully", "error", err)
 	}
 
+	// Close database connection
 	if err := database.Close(db); err != nil {
 		slog.Error("failed to close database connection", "error", err)
 	} else {
