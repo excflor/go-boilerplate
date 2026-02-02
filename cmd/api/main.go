@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go-boilerplate/internal/config"
 	"go-boilerplate/internal/crypto"
@@ -9,7 +10,11 @@ import (
 	"go-boilerplate/internal/infra/health"
 	"go-boilerplate/internal/router"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -42,8 +47,37 @@ func main() {
 	injector := crypto.NewInjector(db)
 	crypto.NewHTTPHandlers(cryptoGroup, injector, bearerMiddleware)
 
-	slog.Info("starting server", "port", cfg.AppPort)
-	if err := e.Start(fmt.Sprintf(":%s", cfg.AppPort)); err != nil {
-		slog.Error("failed to start server", "error", err)
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%s", cfg.AppPort),
+		Handler: e,
 	}
+
+	go func() {
+		slog.Info("starting server", "port", cfg.AppPort)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("failed to start server", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	slog.Info("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown server gracefully", "error", err)
+	}
+
+	if err := database.Close(db); err != nil {
+		slog.Error("failed to close database connection", "error", err)
+	} else {
+		slog.Info("database connection closed")
+	}
+
+	slog.Info("server stopped")
 }
